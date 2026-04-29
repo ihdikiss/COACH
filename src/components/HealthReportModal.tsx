@@ -222,7 +222,7 @@ export default function HealthReportModal({ isOpen, onClose, profile }: HealthRe
                   </button>
                   <button 
                     onClick={() => { 
-                      if (window.confirm('Are you sure you want to print this report?')) {
+                      if (window.confirm('هل أنت متأكد أنك تريد طباعة هذا التقرير؟')) {
                         window.focus(); 
                         window.print(); 
                       }

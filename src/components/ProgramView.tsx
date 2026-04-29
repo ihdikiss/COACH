@@ -34,7 +34,12 @@ export default function ProgramView({ program, onReset }: ProgramViewProps) {
         
         <div className="flex items-center gap-3 no-print">
           <button 
-            onClick={() => { window.focus(); window.print(); }}
+            onClick={() => { 
+              if (window.confirm('هل أنت متأكد أنك تريد طباعة هذا البرنامج؟')) {
+                window.focus(); 
+                window.print(); 
+              }
+            }}
             className="flex items-center gap-2 px-6 py-4 text-xs font-black uppercase bg-slate-900 text-white rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95"
           >
             <Printer size={16} />

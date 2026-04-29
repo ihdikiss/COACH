@@ -23,7 +23,7 @@ export async function generateAllawiProgram(user: UserProfile): Promise<Coaching
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest", 
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -107,11 +107,15 @@ export async function generateAllawiProgram(user: UserProfile): Promise<Coaching
     });
 
     const text = response.text;
-    if (!text) throw new Error("No response from AI");
+    if (!text) throw new Error("لم يتم استلام أي رد من الذكاء الاصطناعي");
     
-    return JSON.parse(text) as CoachingProgram;
+    // Clean potential markdown formatting just in case
+    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
+    
+    return JSON.parse(cleanedText) as CoachingProgram;
   } catch (error) {
     console.error("Error generating program:", error);
+    // Re-throw with more context if needed, but App.tsx will catch it
     throw error;
   }
 }

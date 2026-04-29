@@ -31,7 +31,8 @@ export default function App() {
       const result = await generateAllawiProgram(profile);
       setProgram(result);
     } catch (error) {
-      alert("حدث خطأ أثناء توليد البرنامج. يرجى المحاولة مرة أخرى.");
+      console.error("Generation error:", error);
+      alert(`حدث خطأ أثناء توليد البرنامج: ${error instanceof Error ? error.message : 'خطأ غير معروف'}. يرجى المحاولة مرة أخرى.`);
     } finally {
       setIsLoading(false);
     }
