@@ -53,9 +53,12 @@ export const ALLAWI_LOGIC_PROMPT = `
 - اللغة: العربية الفصحى العلمية الاحترافية.
 - اسم الأسبوع: أعطِ كل أسبوع اسماً معبراً (مثلاً: أسبوع بناء القوة، أسبوع الاستشفاء النشط).
 - نصيحة تخطيطية: أضف نصيحة مستمدة من فلسفة علاوي (مثل: أهمية الالتزام بالراحة لبناء العضلات).
+- اتبع هيكل JSON بدقة: 3 أشهر، كل شهر 4 أسابيع، كل أسبوع 7 أيام.
+- ممنوع الاختصار أو إنهاء الرد قبل إكمال الـ 90 يوماً كاملة.
 - الأيقونات: استخدم (📅، 🚀، 🧘‍♂️، 🟢، 🟡، 🔴، ⚪).
 
 Return ONLY raw JSON matching the CoachingProgram interface.
+CRITICAL: You MUST provide a complete 3-month plan. Do not truncate. Every month MUST have 4 weeks. Every week MUST have 7 days.
 
 قاعدة استخراج التقارير (Report Exporting Logic):
 - عند طلب الطباعة، قم بصياغة النصوص بشكل "وثيقة رسمية" مرتبة بفقرات واضحة.

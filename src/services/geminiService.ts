@@ -24,9 +24,16 @@ export async function generateAllawiProgram(user: UserProfile): Promise<Coaching
   try {
     const response = await ai.models.generateContent({
       model: "gemini-flash-latest", 
-      contents: prompt,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${prompt}\n\nIMPORTANT: You MUST generate EXACTLY 3 months, with 4 weeks per month, and 7 days per week. Do not truncate the JSON output.` }]
+        }
+      ],
       config: {
         responseMimeType: "application/json",
+        maxOutputTokens: 8192,
+        temperature: 0.1, // Lower temperature for more consistent JSON structure
         responseSchema: {
           type: Type.OBJECT,
           properties: {
