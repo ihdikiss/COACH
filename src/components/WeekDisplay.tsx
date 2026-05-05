@@ -4,23 +4,18 @@
  */
 
 import React from 'react';
-import { WeeklyPlan } from '../types';
-import { Calendar, Clock, Activity, Info } from 'lucide-react';
+import { WeeklyPlan, DayCompletion } from '../types';
+import { Calendar, Clock, Activity, Info, CheckCircle2, Circle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface WeekDisplayProps {
   plan: WeeklyPlan;
-  key?: number | string;
+  completions: Record<string, DayCompletion>;
+  onToggleDay: (dayIdx: number) => void;
+  monthNumber: number;
 }
 
-const intensityColors = {
-  'Low': 'bg-blue-100 text-blue-700',
-  'Medium': 'bg-orange-100 text-orange-700',
-  'High': 'bg-red-100 text-red-700',
-  'Rest': 'bg-gray-100 text-gray-700'
-};
-
-export default function WeekDisplay({ plan }: WeekDisplayProps) {
+export default function WeekDisplay({ plan, completions, onToggleDay, monthNumber }: WeekDisplayProps) {
   return (
     <div className="space-y-4">
       <div className="bento-card overflow-hidden !p-0">
@@ -38,61 +33,82 @@ export default function WeekDisplay({ plan }: WeekDisplayProps) {
         </div>
         
         <div className="p-4 space-y-3">
-          {plan.days.map((day, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="p-4 bg-white hover:bg-slate-50 rounded-2xl border border-slate-100 transition-colors space-y-3"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm font-black text-slate-300 italic w-6">{day.day}</div>
-                  <div className="font-bold text-slate-900 text-sm leading-tight flex items-center gap-2">
-                    <span className="text-lg leading-none">{day.intensityIcon}</span>
-                    {day.activityTitle}
+          {plan.days.map((day, idx) => {
+            const key = `m${monthNumber}-w${plan.week}-d${idx}`;
+            const isCompleted = completions[key]?.completed;
+
+            return (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                onClick={() => onToggleDay(idx)}
+                className={`p-4 rounded-3xl border transition-all cursor-pointer group relative overflow-hidden ${
+                  isCompleted 
+                    ? 'bg-emerald-50 border-emerald-100 shadow-sm' 
+                    : 'bg-white hover:bg-slate-50 border-slate-100'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className={`transition-colors ${isCompleted ? 'text-emerald-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                      {isCompleted ? <CheckCircle2 size={24} /> : <Circle size={24} />}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-black text-slate-400 italic leading-none mb-1 uppercase">{day.day}</div>
+                      <div className={`font-bold text-sm leading-tight flex items-center gap-2 ${isCompleted ? 'text-emerald-900 line-through opacity-60' : 'text-slate-900'}`}>
+                        <span className="text-lg leading-none">{day.intensityIcon}</span>
+                        {day.activityTitle}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 no-print">
+                    <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg ${isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <Clock size={10} />
+                      {day.totalDuration}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
-                    <Clock size={10} />
-                    {day.totalDuration}
+                {/* Detailed Parts - Collapse if completed to save space, but show on print */}
+                <div className={`grid grid-cols-1 gap-2 pt-3 mt-3 border-t border-black/5 ${isCompleted ? 'hidden print:grid opacity-50' : 'grid'}`}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded shrink-0">إحماء</span>
+                    <div className="text-[11px] text-slate-600 leading-tight italic">
+                      <span className="font-bold text-slate-400">({day.warmup.duration})</span> {day.warmup.description}
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded shrink-0">رئيسي</span>
+                    <div className="text-[11px] text-slate-900 leading-tight font-medium">
+                      <span className="font-bold text-slate-400">({day.mainPart.duration})</span> {day.mainPart.description}
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded shrink-0">تهدئة</span>
+                    <div className="text-[11px] text-slate-600 leading-tight">
+                      <span className="font-bold text-slate-400">({day.cooldown.duration})</span> {day.cooldown.description}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Detailed Parts */}
-              <div className="grid grid-cols-1 gap-2 pt-2 border-t border-slate-50">
-                <div className="flex items-start gap-2">
-                  <span className="text-[9px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded shrink-0">إحماء</span>
-                  <div className="text-[11px] text-slate-600 leading-tight">
-                    <span className="font-bold text-slate-400">({day.warmup.duration})</span> {day.warmup.description}
+                {day.notes && !isCompleted && (
+                  <div className="text-[10px] text-slate-400 font-medium italic border-t border-slate-50 pt-2 mt-2 flex gap-2">
+                    <Info size={12} className="shrink-0" />
+                    {day.notes}
                   </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded shrink-0">رئيسي</span>
-                  <div className="text-[11px] text-slate-900 leading-tight font-medium">
-                    <span className="font-bold text-slate-400">({day.mainPart.duration})</span> {day.mainPart.description}
+                )}
+                
+                {isCompleted && (
+                  <div className="absolute top-2 left-2 text-[8px] font-black text-emerald-300 uppercase italic no-print">
+                    Done
                   </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded shrink-0">تهدئة</span>
-                  <div className="text-[11px] text-slate-600 leading-tight">
-                    <span className="font-bold text-slate-400">({day.cooldown.duration})</span> {day.cooldown.description}
-                  </div>
-                </div>
-              </div>
-
-              {day.notes && (
-                <div className="text-[10px] text-slate-400 font-medium italic border-t border-slate-50 pt-2 flex gap-2">
-                  <Info size={12} className="shrink-0" />
-                  {day.notes}
-                </div>
-              )}
-            </motion.div>
-          ))}
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 

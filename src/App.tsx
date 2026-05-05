@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UserForm from './components/UserForm';
 import ProgramView from './components/ProgramView';
 import HealthReportModal from './components/HealthReportModal';
-import { UserProfile, CoachingProgram, Gender, SkillLevel, TrainingGoal } from './types';
-import { generateAllawiProgram } from './services/geminiService';
+import { UserProfile, CoachingProgram, Gender, SkillLevel, TrainingGoal, DayCompletion } from './types';
+import { generateInitialProgram, generateSubsequentMonth } from './services/geminiService';
 import { ShieldCheck, Info, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -24,15 +24,69 @@ export default function App() {
     skillLevel: SkillLevel.BEGINNER,
     goal: TrainingGoal.GENERAL_HEALTH
   });
+  const [completions, setCompletions] = useState<Record<string, DayCompletion>>(() => {
+    const saved = localStorage.getItem('runz_completions');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('runz_completions', JSON.stringify(completions));
+  }, [completions]);
 
   const handleGenerate = async (profile: UserProfile) => {
     setIsLoading(true);
     try {
-      const result = await generateAllawiProgram(profile);
+      const result = await generateInitialProgram(profile);
       setProgram(result);
     } catch (error) {
       console.error("Generation error:", error);
       alert(`حدث خطأ أثناء توليد البرنامج: ${error instanceof Error ? error.message : 'خطأ غير معروف'}. يرجى المحاولة مرة أخرى.`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCompleteDay = (month: number, week: number, dayIndex: number) => {
+    const key = `m${month}-w${week}-d${dayIndex}`;
+    const wasCompleted = completions[key]?.completed;
+    
+    setCompletions(prev => ({
+      ...prev,
+      [key]: {
+        month,
+        week,
+        dayIndex,
+        completed: !wasCompleted,
+        completedAt: !wasCompleted ? new Date().toISOString() : undefined
+      }
+    }));
+
+    if (!wasCompleted) {
+      // Anti-cheat alert with Allawi tone
+      alert("لقد أتممت خطوة نحو القمة. تذكر: الغش في التمرين هو غش لنفسك، الجسد لا يكذب والنتائج تُبنى بالاستمرارية، وليس بالقفز فوق الأيام. نراك غداً!");
+    }
+  };
+
+  const handleFetchNextMonth = async () => {
+    if (!program) return;
+    const nextMonthNumber = program.months.length + 1;
+    if (nextMonthNumber > 3) return;
+
+    setIsLoading(true);
+    try {
+      const context = `Last month theme was: ${program.months[program.months.length - 1].title}`;
+      const nextMonth = await generateSubsequentMonth(currentProfile, nextMonthNumber, context);
+      
+      setProgram(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          months: [...prev.months, nextMonth]
+        };
+      });
+    } catch (error) {
+      console.error("Fetch next month error:", error);
+      alert("حدث خطأ أثناء فتح الشهر التالي.");
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +179,14 @@ export default function App() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <ProgramView program={program} onReset={() => setProgram(null)} />
+                <ProgramView 
+                  program={program} 
+                  onReset={() => setProgram(null)} 
+                  completions={completions}
+                  onToggleDay={handleCompleteDay}
+                  onUnlockNextMonth={handleFetchNextMonth}
+                  isMonthLoading={isLoading}
+                />
               </motion.div>
             )}
           </AnimatePresence>

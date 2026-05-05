@@ -61,6 +61,15 @@ export interface MonthlyPlan {
   weeks: WeeklyPlan[];
 }
 
+export interface DayCompletion {
+  month: number;
+  week: number;
+  dayIndex: number;
+  completed: boolean;
+  completedAt?: string;
+  notes?: string;
+}
+
 export interface CoachingProgram {
   title: string;
   overview: string;

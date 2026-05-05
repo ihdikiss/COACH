@@ -4,19 +4,49 @@
  */
 
 import React, { useState } from 'react';
-import { CoachingProgram } from '../types';
+import { CoachingProgram, DayCompletion } from '../types';
 import WeekDisplay from './WeekDisplay';
-import { AlertTriangle, Download, RefreshCw, ChevronLeft, ChevronRight, LayoutGrid, List, Printer, Info } from 'lucide-react';
+import { AlertTriangle, Download, RefreshCw, ChevronLeft, ChevronRight, LayoutGrid, List, Printer, Info, Lock, Zap, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProgramViewProps {
   program: CoachingProgram;
   onReset: () => void;
+  completions: Record<string, DayCompletion>;
+  onToggleDay: (month: number, week: number, dayIndex: number) => void;
+  onUnlockNextMonth: () => void;
+  isMonthLoading: boolean;
 }
 
-export default function ProgramView({ program, onReset }: ProgramViewProps) {
+export default function ProgramView({ 
+  program, 
+  onReset, 
+  completions, 
+  onToggleDay, 
+  onUnlockNextMonth,
+  isMonthLoading 
+}: ProgramViewProps) {
   const [activeMonth, setActiveMonth] = useState(0);
   const currentMonth = program.months[activeMonth];
+
+  const calculateMonthProgress = (monthIndex: number) => {
+    const month = program.months[monthIndex];
+    if (!month) return 0;
+    
+    let completedCount = 0;
+    month.weeks.forEach(week => {
+      week.days.forEach((_, dayIdx) => {
+        const key = `m${month.month}-w${week.week}-d${dayIdx}`;
+        if (completions[key]?.completed) completedCount++;
+      });
+    });
+    
+    const totalDays = month.weeks.length * 7;
+    return Math.round((completedCount / totalDays) * 100);
+  };
+
+  const progress = calculateMonthProgress(activeMonth);
+  const canUnlockNext = progress >= 80 && program.months.length < 3;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" dir="rtl">
@@ -28,7 +58,7 @@ export default function ProgramView({ program, onReset }: ProgramViewProps) {
           </div>
           <div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{program.title}</h2>
-            <p className="text-slate-500 font-medium max-w-2xl">بوابة RUNZ - منطق علاوي للتدريب المتدرج (Allawi Cycle Architecture)</p>
+            <p className="text-slate-500 font-medium max-w-2xl">بوابة RUNZ - مرحلي تدريجي (Commitment Architecture)</p>
           </div>
         </div>
         
@@ -43,7 +73,7 @@ export default function ProgramView({ program, onReset }: ProgramViewProps) {
             className="flex items-center gap-2 px-6 py-4 text-xs font-black uppercase bg-slate-900 text-white rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95"
           >
             <Printer size={16} />
-            طباعة البرنامج (PDF)
+            طباعة البرنامج
           </button>
           <button 
             onClick={onReset}
@@ -56,50 +86,81 @@ export default function ProgramView({ program, onReset }: ProgramViewProps) {
       </div>
 
       {/* Logic Filter Card (Dark Left Panel) */}
-      <div className="lg:col-span-5 bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden h-full">
+      <div className="lg:col-span-4 bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden h-full">
         <div className="relative z-10 space-y-8">
           <h3 className="text-xl font-bold flex items-center gap-3">
-            <span className="accent-bar bg-blue-500"></span> فلتر منطق علاوي (Logic Layer)
+            <span className="accent-bar bg-blue-500"></span> نظام الالتزام (Gamification)
           </h3>
           
           <div className="space-y-6">
             <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-2">توصيات السلامة والشدة</span>
-              <ul className="space-y-4">
-                {program.safetyWarnings.map((w, i) => (
-                  <li key={i} className="text-slate-300 text-sm leading-relaxed flex gap-3">
-                    <AlertTriangle className="text-orange-500 shrink-0" size={18} />
+              <div className="flex justify-between items-end mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">إنجاز الشهر {currentMonth.month}</span>
+                <span className="text-2xl font-black italic">{progress}%</span>
+              </div>
+              <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  className="h-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+                />
+              </div>
+              <p className="text-[10px] text-slate-500 mt-4 leading-relaxed italic">
+                * يتطلب فتح الشهر التالي إكمال 80% على الأقل من حصص الشهر الحالي لضمان التكيف الفسيولوجي.
+              </p>
+            </div>
+
+            <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3">توصيات السلامة</span>
+              <ul className="space-y-3">
+                {program.safetyWarnings.slice(0, 3).map((w, i) => (
+                  <li key={i} className="text-slate-400 text-xs leading-relaxed flex gap-2">
+                    <ShieldCheck className="text-blue-500 shrink-0" size={14} />
                     {w}
                   </li>
                 ))}
               </ul>
             </div>
-
-            <div className="bg-emerald-500/10 p-6 rounded-3xl border border-emerald-500/20">
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">الطور التدريبي الحالي</span>
-              <p className="text-white font-black text-2xl italic leading-none">{currentMonth.title}</p>
-            </div>
           </div>
         </div>
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-emerald-600/10 blur-[100px] rounded-full"></div>
       </div>
 
       {/* Month Navigator & Weekly Plans */}
-      <div className="lg:col-span-7 space-y-6">
-        <div className="flex p-2 bg-slate-200/50 rounded-3xl gap-2 overflow-x-auto scrollbar-hide">
+      <div className="lg:col-span-8 space-y-6">
+        <div className="flex p-2 bg-slate-200/50 rounded-3xl gap-2 overflow-x-auto no-print">
           {program.months.map((m, idx) => (
             <button
               key={idx}
               onClick={() => setActiveMonth(idx)}
               className={`flex-1 min-w-[120px] py-4 rounded-2xl font-black text-sm transition-all ${
                 activeMonth === idx 
-                  ? 'bg-white text-slate-900 shadow-sm' 
+                  ? 'bg-slate-900 text-white shadow-xl' 
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               الشهر {m.month}
             </button>
           ))}
+          {program.months.length < 3 && (
+            <button
+               disabled={!canUnlockNext || isMonthLoading}
+               onClick={onUnlockNextMonth}
+               className={`flex-1 min-w-[150px] py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 border-2 border-dashed ${
+                 canUnlockNext 
+                   ? 'border-blue-500 text-blue-600 bg-blue-50 hover:bg-blue-100 animate-pulse'
+                   : 'border-slate-300 text-slate-300 cursor-not-allowed'
+               }`}
+            >
+              {isMonthLoading ? (
+                <RefreshCw size={16} className="animate-spin" />
+              ) : (
+                <>
+                  {canUnlockNext ? <Zap size={16} /> : <Lock size={16} />}
+                  فتح الشهر {program.months.length + 1}
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -112,7 +173,12 @@ export default function ProgramView({ program, onReset }: ProgramViewProps) {
           >
             {currentMonth.weeks.map((week, idx) => (
               <div key={idx} className="print-break-inside-avoid">
-                <WeekDisplay plan={week} />
+                <WeekDisplay 
+                  plan={week} 
+                  completions={completions}
+                  onToggleDay={(dayIdx) => onToggleDay(currentMonth.month, week.week, dayIdx)}
+                  monthNumber={currentMonth.month}
+                />
               </div>
             ))}
           </motion.div>
