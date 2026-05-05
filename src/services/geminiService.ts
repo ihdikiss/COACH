@@ -36,8 +36,8 @@ export async function generateInitialProgram(user: UserProfile): Promise<Coachin
       ],
       config: {
         responseMimeType: "application/json",
-        maxOutputTokens: 4096,
-        temperature: 0.1,
+        maxOutputTokens: 8192,
+        temperature: 0,
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -154,8 +154,8 @@ export async function generateSubsequentMonth(
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
-        maxOutputTokens: 4096,
-        temperature: 0.1,
+        maxOutputTokens: 8192,
+        temperature: 0,
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -183,30 +183,35 @@ export async function generateSubsequentMonth(
                           properties: {
                             description: { type: Type.STRING },
                             duration: { type: Type.STRING }
-                          }
+                          },
+                          required: ["description", "duration"]
                         },
                         mainPart: {
                           type: Type.OBJECT,
                           properties: {
                             description: { type: Type.STRING },
                             duration: { type: Type.STRING }
-                          }
+                          },
+                          required: ["description", "duration"]
                         },
                         cooldown: {
                           type: Type.OBJECT,
                           properties: {
                             description: { type: Type.STRING },
                             duration: { type: Type.STRING }
-                          }
+                          },
+                          required: ["description", "duration"]
                         },
                         intensity: { type: Type.STRING },
                         intensityIcon: { type: Type.STRING },
                         totalDuration: { type: Type.STRING },
                         notes: { type: Type.STRING }
-                      }
+                      },
+                      required: ["day", "activityTitle", "warmup", "mainPart", "cooldown", "intensity", "intensityIcon", "totalDuration"]
                     }
                   }
-                }
+                },
+                required: ["week", "weekName", "focus", "labInsight", "planningAdvice", "days"]
               }
             }
           },
