@@ -25,6 +25,12 @@ export enum ProgramType {
   THREE_DAY = 'three_day_condensed'
 }
 
+export enum AppView {
+  LANDING = 'landing',
+  REGISTER = 'register',
+  MAIN_APP = 'main_app'
+}
+
 export interface UserProfile {
   age: number;
   weight: number; 
