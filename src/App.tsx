@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import UserForm from './components/UserForm';
 import ProgramView from './components/ProgramView';
 import HealthReportModal from './components/HealthReportModal';
-import { UserProfile, CoachingProgram, Gender, SkillLevel, TrainingGoal, DayCompletion } from './types';
+import { UserProfile, CoachingProgram, Gender, SkillLevel, TrainingGoal, DayCompletion, ProgramType } from './types';
 import { generateInitialProgram, generateSubsequentMonth } from './services/geminiService';
 import { ShieldCheck, Info, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -22,7 +22,8 @@ export default function App() {
     height: 175,
     gender: Gender.MALE,
     skillLevel: SkillLevel.BEGINNER,
-    goal: TrainingGoal.GENERAL_HEALTH
+    goal: TrainingGoal.GENERAL_HEALTH,
+    programType: ProgramType.WEEKLY
   });
   const [completions, setCompletions] = useState<Record<string, DayCompletion>>(() => {
     const saved = localStorage.getItem('runz_completions');
@@ -38,6 +39,8 @@ export default function App() {
     try {
       const result = await generateInitialProgram(profile);
       setProgram(result);
+      // Reset completions for the new program context
+      setCompletions({});
     } catch (error) {
       console.error("Generation error:", error);
       alert(`حدث خطأ أثناء توليد البرنامج: ${error instanceof Error ? error.message : 'خطأ غير معروف'}. يرجى المحاولة مرة أخرى.`);
@@ -84,6 +87,9 @@ export default function App() {
           months: [...prev.months, nextMonth]
         };
       });
+      
+      // Motivational success message
+      alert(`أحسنت أيها العداء! لقد أثبت التزاماً حديدياً. تم فتح الشهر ${nextMonthNumber} بنجاح. تذكر أن الاستمرارية هي سر التفرق، والقمة تنتظر من لا يمل من الصعود.`);
     } catch (error) {
       console.error("Fetch next month error:", error);
       alert("حدث خطأ أثناء فتح الشهر التالي.");

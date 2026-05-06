@@ -46,7 +46,8 @@ export default function ProgramView({
   };
 
   const progress = calculateMonthProgress(activeMonth);
-  const canUnlockNext = progress >= 80 && program.months.length < 3;
+  const isLatestMonth = activeMonth === program.months.length - 1;
+  const canUnlockNext = isLatestMonth && progress >= 80 && program.months.length < 3;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" dir="rtl">

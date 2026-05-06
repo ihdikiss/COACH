@@ -20,6 +20,11 @@ export enum TrainingGoal {
   RACE_PREP = 'race_prep'
 }
 
+export enum ProgramType {
+  WEEKLY = 'weekly_full',
+  THREE_DAY = 'three_day_condensed'
+}
+
 export interface UserProfile {
   age: number;
   weight: number; 
@@ -27,6 +32,7 @@ export interface UserProfile {
   gender: Gender;
   skillLevel: SkillLevel;
   goal: TrainingGoal;
+  programType: ProgramType;
 }
 
 export interface TrainingSessionPart {

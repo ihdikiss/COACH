@@ -4,9 +4,9 @@
  */
 
 import React, { useState } from 'react';
-import { UserProfile, SkillLevel, TrainingGoal, Gender } from '../types';
+import { UserProfile, SkillLevel, TrainingGoal, Gender, ProgramType } from '../types';
 import { GOAL_DEFINITIONS } from '../constants';
-import { Activity, User, Target, ChevronRight, Weight, Users } from 'lucide-react';
+import { Activity, User, Target, ChevronRight, Weight, Users, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface UserFormProps {
@@ -22,7 +22,8 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
     height: 175,
     gender: Gender.MALE,
     skillLevel: SkillLevel.BEGINNER,
-    goal: TrainingGoal.GENERAL_HEALTH
+    goal: TrainingGoal.GENERAL_HEALTH,
+    programType: ProgramType.WEEKLY
   });
 
   const updateFormData = (newData: Partial<UserProfile>) => {
@@ -124,6 +125,18 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
               {Object.entries(GOAL_DEFINITIONS).map(([key, def]) => (
                 <option key={key} value={key}>{def.label}</option>
               ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">طبيعة الجدول (نوع البرنامج)</span>
+            <select
+              value={formData.programType}
+              onChange={(e) => updateFormData({ programType: e.target.value as ProgramType })}
+              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500 appearance-none"
+            >
+              <option value={ProgramType.WEEKLY}>برنامج أسبوعي كامل (5-6 أيام)</option>
+              <option value={ProgramType.THREE_DAY}>برنامج مكثف تلات أيام فقط (Low Frequency)</option>
             </select>
           </div>
         </div>
