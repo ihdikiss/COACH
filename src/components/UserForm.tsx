@@ -41,7 +41,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
     <form onSubmit={handleSubmit} className="bento-card flex flex-col justify-between h-full space-y-8">
       <div>
         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-          <span className="accent-bar bg-orange-500"></span> محاكي RUNZ (المدخلات)
+          <span className="accent-bar bg-green-500"></span> محاكي RUNZ (المدخلات)
         </h2>
 
         <div className="grid grid-cols-2 gap-4">
@@ -51,14 +51,14 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
               <button 
                 type="button"
                 onClick={() => updateFormData({gender: Gender.MALE})}
-                className={`py-3 rounded-xl font-bold text-sm transition-all border-2 ${formData.gender === Gender.MALE ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
+                className={`py-3 rounded-xl font-bold text-sm transition-all border-2 ${formData.gender === Gender.MALE ? 'bg-slate-950 text-white border-slate-950 shadow-lg shadow-green-500/10' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
               >
                 ذكر
               </button>
               <button 
                 type="button"
                 onClick={() => updateFormData({gender: Gender.FEMALE})}
-                className={`py-3 rounded-xl font-bold text-sm transition-all border-2 ${formData.gender === Gender.FEMALE ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
+                className={`py-3 rounded-xl font-bold text-sm transition-all border-2 ${formData.gender === Gender.FEMALE ? 'bg-slate-950 text-white border-slate-950 shadow-lg shadow-green-500/10' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
               >
                 أنثى
               </button>
@@ -72,7 +72,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
               value={formData.age || ''}
               onChange={(e) => updateFormData({ age: e.target.value === '' ? 0 : Number(e.target.value) })}
               placeholder="0"
-              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500"
+              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -83,7 +83,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
               value={formData.weight || ''}
               onChange={(e) => updateFormData({ weight: e.target.value === '' ? 0 : Number(e.target.value) })}
               placeholder="0"
-              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500"
+              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -95,7 +95,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
               value={formData.height || ''}
               onChange={(e) => updateFormData({ height: e.target.value === '' ? 0 : Number(e.target.value) })}
               placeholder="0"
-              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500"
+              className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -105,7 +105,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
             <select
               value={formData.skillLevel}
               onChange={(e) => updateFormData({ skillLevel: e.target.value as SkillLevel })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500 appearance-none"
+              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
             >
               <option value={SkillLevel.BEGINNER}>مبتدئ (Progression 2:1)</option>
               <option value={SkillLevel.INTERMEDIATE}>متوسط (Progression 1:1)</option>
@@ -120,7 +120,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
             <select
               value={formData.goal}
               onChange={(e) => updateFormData({ goal: e.target.value as TrainingGoal })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500 appearance-none"
+              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
             >
               {Object.entries(GOAL_DEFINITIONS).map(([key, def]) => (
                 <option key={key} value={key}>{def.label}</option>
@@ -133,7 +133,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
             <select
               value={formData.programType}
               onChange={(e) => updateFormData({ programType: e.target.value as ProgramType })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-orange-500 appearance-none"
+              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
             >
               <option value={ProgramType.WEEKLY}>برنامج أسبوعي كامل (5-6 أيام)</option>
               <option value={ProgramType.THREE_DAY}>برنامج مكثف تلات أيام فقط (Low Frequency)</option>
@@ -143,20 +143,20 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
       </div>
 
       <div className="pt-6 border-t border-slate-100">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-slate-900 hover:bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              استخراج البرنامج التدريبي
-              <ChevronRight size={18} />
-            </>
-          )}
-        </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-slate-950 hover:bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50 shadow-xl group"
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+            ) : (
+              <>
+                استخراج البرنامج التدريبي
+                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform rotate-180" />
+              </>
+            )}
+          </button>
       </div>
     </form>
   );

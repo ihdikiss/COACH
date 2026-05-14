@@ -130,8 +130,8 @@ export default function App() {
                 onClick={() => setCurrentView(AppView.LANDING)}
                 className="cursor-pointer group"
               >
-                <h1 className="text-5xl font-black text-slate-900 tracking-tighter italic group-hover:text-red-600 transition-colors">
-                  RUNZ<span className="text-blue-500 group-hover:text-red-400">.ENGINE</span>
+                <h1 className="text-5xl font-black text-slate-900 tracking-tighter italic group-hover:text-green-600 transition-colors">
+                  RUNZ<span className="text-green-500 group-hover:text-green-400">.ENGINE</span>
                 </h1>
                 <p className="text-slate-500 font-medium mt-1">المحرك التدريبي العلمي القائم على أسس "حمل التدريب" للدكتور علاوي</p>
               </div>
@@ -140,14 +140,14 @@ export default function App() {
                   onClick={openReport}
                   className="bg-white hover:bg-slate-50 px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3 transition-all active:scale-95 group"
                 >
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
                     <ShieldCheck size={24} />
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block uppercase font-black tracking-widest leading-none mb-1">Status: Online</span>
                     <span className="text-slate-900 font-bold text-sm">تقرير الجاهزية والوقاية</span>
                   </div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
                 </button>
               </div>
             </header>
@@ -164,27 +164,27 @@ export default function App() {
                   >
                     {/* Hero Intro Column */}
                     <div className="lg:col-span-5 space-y-8">
-                      <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden h-full flex flex-col justify-center">
+                      <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden h-full flex flex-col justify-center border border-white/5">
                         <div className="relative z-10 space-y-6">
                           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
                             خوارزمية محاكاة الأحمال
                           </div>
                           <h2 className="text-5xl font-black leading-tight tracking-tighter uppercase italic">
                             RUN YOUR <br />
-                            <span className="text-blue-400">DATA SCIENTIFICALLY</span>
+                            <span className="text-green-500">DATA SCIENTIFICALLY</span>
                           </h2>
                           <p className="text-slate-400 text-lg leading-relaxed">
-                            نحن نطبق آلياً قواعد التموج (3:1) وفلاتر الشدة والوزن بناءً على الفصل الرابع من مرجع د. علاوي لضمان أقصى كفاءة فسيولوجية.
+                            نحن نطبق آلياً قواعد التموج (3:1) بناءً على الفصل الرابع من مرجع د. علاوي لضمان أقصى كفاءة فسيولوجية.
                           </p>
                           <div className="flex gap-4 pt-6">
                             <div className="flex flex-col">
-                              <span className="text-2xl font-black text-white italic">🟢🟡🔴</span>
-                              <span className="text-[10px] uppercase font-bold text-slate-500">نظام فلاتر الشدة</span>
+                              <span className="text-2xl font-black text-white italic">⚪🟢🟢</span>
+                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em]">RUNZ PERFORMANCE SYSTEM</span>
                             </div>
                           </div>
                         </div>
                         {/* Decorative radial gradient */}
-                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full"></div>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-green-500/20 blur-[100px] rounded-full"></div>
                       </div>
                     </div>
 

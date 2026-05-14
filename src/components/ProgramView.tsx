@@ -54,8 +54,8 @@ export default function ProgramView({
       {/* Top Banner / Program Overview */}
       <div className="lg:col-span-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 no-print">
-            <LayoutGrid size={24} />
+          <div className="w-12 h-12 bg-slate-950 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-black/20 no-print">
+            <LayoutGrid size={24} className="text-green-500" />
           </div>
           <div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{program.title}</h2>
@@ -90,20 +90,20 @@ export default function ProgramView({
       <div className="lg:col-span-4 bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden h-full">
         <div className="relative z-10 space-y-8">
           <h3 className="text-xl font-bold flex items-center gap-3">
-            <span className="accent-bar bg-blue-500"></span> نظام الالتزام (Gamification)
+            <span className="accent-bar bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span> نظام الالتزام (Gamification)
           </h3>
           
           <div className="space-y-6">
-            <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+            <div className="bg-slate-800/50 p-6 rounded-3xl border border-white/5">
               <div className="flex justify-between items-end mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">إنجاز الشهر {currentMonth.month}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-green-500">إنجاز الشهر {currentMonth.month}</span>
                 <span className="text-2xl font-black italic">{progress}%</span>
               </div>
-              <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-slate-700/50 rounded-full overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  className="h-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+                  className="h-full bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.5)]"
                 />
               </div>
               <p className="text-[10px] text-slate-500 mt-4 leading-relaxed italic">
@@ -116,7 +116,7 @@ export default function ProgramView({
               <ul className="space-y-3">
                 {program.safetyWarnings.slice(0, 3).map((w, i) => (
                   <li key={i} className="text-slate-400 text-xs leading-relaxed flex gap-2">
-                    <ShieldCheck className="text-blue-500 shrink-0" size={14} />
+                    <ShieldCheck className="text-green-500 shrink-0" size={14} />
                     {w}
                   </li>
                 ))}
@@ -135,7 +135,7 @@ export default function ProgramView({
               onClick={() => setActiveMonth(idx)}
               className={`flex-1 min-w-[120px] py-4 rounded-2xl font-black text-sm transition-all ${
                 activeMonth === idx 
-                  ? 'bg-slate-900 text-white shadow-xl' 
+                  ? 'bg-slate-950 text-white shadow-xl shadow-green-500/5' 
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -148,7 +148,7 @@ export default function ProgramView({
                onClick={onUnlockNextMonth}
                className={`flex-1 min-w-[150px] py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 border-2 border-dashed ${
                  canUnlockNext 
-                   ? 'border-blue-500 text-blue-600 bg-blue-50 hover:bg-blue-100 animate-pulse'
+                   ? 'border-green-500 text-green-600 bg-green-50 hover:bg-green-100 animate-pulse'
                    : 'border-slate-300 text-slate-300 cursor-not-allowed'
                }`}
             >
@@ -196,9 +196,9 @@ export default function ProgramView({
                 <div className="flex items-center gap-2"><span className="text-lg">📅</span> <span>استشفاء وتثبيت</span></div>
                 <div className="flex items-center gap-2"><span className="text-lg">🚀</span> <span>زيادة حجم/سرعة</span></div>
                 <div className="flex items-center gap-2"><span className="text-lg">🧘‍♂️</span> <span>راحة إيجابية</span></div>
-                <div className="flex items-center gap-2">🟢 <span className="text-slate-500">حمل منخفض (120-140 bpm)</span></div>
-                <div className="flex items-center gap-2">🟡 <span className="text-slate-500">حمل متوسط (140-160 bpm)</span></div>
-                <div className="flex items-center gap-2">🔴 <span className="text-slate-500">حمل عالٍ/قمة (160+ bpm)</span></div>
+                <div className="flex items-center gap-2">⚪ <span className="text-slate-500">حمل منخفض (120-140 bpm)</span></div>
+                <div className="flex items-center gap-2">🟢 <span className="text-slate-500">حمل متوسط (140-160 bpm)</span></div>
+                <div className="flex items-center gap-2">🟢🟢 <span className="text-slate-500">حمل عالٍ/قمة (160+ bpm)</span></div>
               </div>
             </div>
             <div className="space-y-4">

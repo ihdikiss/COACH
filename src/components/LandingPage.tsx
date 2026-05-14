@@ -40,17 +40,17 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
             className="flex flex-col items-center justify-center min-h-screen relative p-6"
           >
             {/* Background Accents */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 opacity-20">
-              <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-600 rounded-full blur-[120px]" />
-              <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-green-600 rounded-full blur-[100px]" />
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 opacity-10">
+              <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-green-500 rounded-full blur-[120px]" />
+              <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-white rounded-full blur-[100px] opacity-20" />
             </div>
 
             {/* Header / Logo */}
-            <div className="absolute top-8 right-8 flex items-center gap-2">
-              <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                <span className="font-black text-xl italic tracking-tighter">R</span>
+            <div className="absolute top-8 right-8 flex items-center gap-2 group cursor-pointer">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors duration-500 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                <span className="font-black text-xl italic tracking-tighter text-black">R</span>
               </div>
-              <span className="font-black text-2xl tracking-tighter uppercase italic">RUNZ</span>
+              <span className="font-black text-2xl tracking-tighter uppercase italic group-hover:text-green-500 transition-colors">RUNZ</span>
             </div>
 
             {/* Hero Section */}
@@ -72,7 +72,7 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                 className="text-5xl md:text-7xl font-black italic uppercase leading-tight tracking-tight"
               >
                 التدريب الرياضي المبني على <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-orange-500 to-green-500">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-green-400 to-green-600">
                   أسس علمية صلبة
                 </span>
               </motion.h1>
@@ -95,19 +95,19 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
               >
                 <button
                   onClick={() => handleOpenRegister('free')}
-                  className="group relative px-8 py-5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-2xl transition-all flex items-center justify-center gap-3 overflow-hidden"
+                  className="group relative px-8 py-5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-2xl transition-all flex items-center justify-center gap-3 overflow-hidden shadow-xl"
                 >
-                  <div className="absolute inset-0 bg-green-600/5 group-hover:bg-green-600/10 transition-colors" />
-                  <span className="font-bold text-lg relative z-10">نسخة التدريب المجانية</span>
+                  <div className="absolute inset-0 bg-green-500/5 group-hover:bg-green-500/10 transition-colors" />
+                  <span className="font-bold text-lg relative z-10">النسخة المجانية</span>
                   <ArrowRight className="text-green-500 group-hover:-translate-x-1 transition-transform relative z-10" />
                 </button>
 
                 <button
                   onClick={() => handleOpenRegister('premium')}
-                  className="group relative px-8 py-5 bg-red-600 hover:bg-red-700 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-red-600/20"
+                  className="group relative px-8 py-5 bg-green-500 hover:bg-green-400 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(34,197,94,0.3)] text-black"
                 >
-                  <span className="font-bold text-lg">نسخة التدريب المميزة</span>
-                  <Trophy size={20} className="group-hover:scale-110 transition-transform" />
+                  <span className="font-bold text-lg">النسخة المميزة</span>
+                  <Trophy size={20} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
                 </button>
               </motion.div>
 
@@ -120,21 +120,21 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
             </div>
 
             {/* Features Bar */}
-            <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
-                <div className="flex flex-col items-center gap-2">
-                    <ShieldCheck className="text-red-600" />
+            <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-60">
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <ShieldCheck className="text-green-500 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">حماية البيانات</span>
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Zap className="text-orange-500" />
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <Zap className="text-white group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">استجابة ذكية</span>
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Trophy className="text-green-600" />
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <Trophy className="text-green-500 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">نتائج مثبتة</span>
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Activity className="text-blue-500" />
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <Activity className="text-white group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">رصد حي للجهد</span>
                 </div>
             </div>
@@ -157,7 +157,7 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                     <span>العودة للرئيسية</span>
                 </button>
                 <div className="flex justify-center mb-4">
-                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${regType === 'premium' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
+                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${regType === 'premium' ? 'bg-green-500/10 text-green-500' : 'bg-white/10 text-white'}`}>
                         {regType === 'premium' ? 'PREMIUM ACCESS' : 'FREE ACCESS'}
                      </span>
                 </div>
@@ -169,12 +169,12 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                 <div className="space-y-1.5 text-right">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">اسم المستخدم</label>
                   <div className="relative group">
-                    <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="text"
                       required
                       placeholder="Username"
-                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
@@ -218,12 +218,12 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter"
-                >
-                  التسجيل والمتابعة
-                </button>
+                  <button 
+                    type="submit"
+                    className="w-full bg-green-500 hover:bg-green-400 text-black font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter"
+                  >
+                    التسجيل والمتابعة
+                  </button>
 
                 <div className="text-center pt-4">
                   <span className="text-slate-500 text-sm italic">لديك حساب؟ </span>
@@ -249,11 +249,11 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
             <div className="w-full max-w-md space-y-8 bg-slate-900/50 p-8 rounded-3xl border border-slate-800 backdrop-blur-xl">
               <div className="space-y-2 text-center">
                 <div className="flex justify-center mb-6">
-                  <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center rotate-3 group hover:rotate-0 transition-transform">
-                    <Lock className="text-white" size={32} />
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center rotate-3 group hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <Lock className="text-black" size={32} />
                   </div>
                 </div>
-                <h2 className="text-3xl font-black italic uppercase">تسجيل الدخول</h2>
+                <h2 className="text-3xl font-black italic uppercase text-white">تسجيل الدخول</h2>
                 <p className="text-slate-400 text-sm">مرحباً بك مجدداً في RUNZ. ادخل بيانات حسابك</p>
               </div>
 
