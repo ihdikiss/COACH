@@ -1,142 +1,61 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { UserProfile, CoachingProgram, MonthlyPlan, ProgramType } from "../types";
 import { ALLAWI_LOGIC_PROMPT } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-/**
- * Generates the initial program structure including metadata and the first month's plan.
- * This prevents timeouts by not generating all 90 days at once.
- */
 export async function generateInitialProgram(user: UserProfile): Promise<CoachingProgram> {
+  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
   const userStats = `
-    User Profile:
     Age: ${user.age}
     Weight: ${user.weight}kg
+    Height: ${user.height}cm
     Gender: ${user.gender}
     Skill Level: ${user.skillLevel}
     Goal: ${user.goal}
     Program Frequency: ${user.programType === ProgramType.THREE_DAY ? '3-Day Condensed (Training only 3 days per week)' : 'Weekly Full (Standard 5-6 days per week)'}
   `;
 
-  const prompt = `${ALLAWI_LOGIC_PROMPT}\n\n${userStats}\n\nPhase 1: Generate the Program Title, Overview, and Month 1 ONLY.\nREMINDER: Each week must start with "الاثنين" and end with "الأحد". Only runners' specific exercises allowed.`;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest", 
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: `${prompt}\n\nIMPORTANT: Return EXACTLY ONE month. Month number MUST be 1. Do not truncate the JSON output.` }]
-        }
-      ],
-      config: {
-        responseMimeType: "application/json",
-        maxOutputTokens: 8192,
-        temperature: 0,
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            overview: { type: Type.STRING },
-            months: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  month: { type: Type.NUMBER },
-                  title: { type: Type.STRING },
-                  weeks: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        week: { type: Type.NUMBER },
-                        weekName: { type: Type.STRING },
-                        focus: { type: Type.STRING },
-                        labInsight: { type: Type.STRING },
-                        planningAdvice: { type: Type.STRING },
-                        days: {
-                          type: Type.ARRAY,
-                          items: {
-                            type: Type.OBJECT,
-                            properties: {
-                              day: { type: Type.STRING },
-                              activityTitle: { type: Type.STRING },
-                              warmup: {
-                                type: Type.OBJECT,
-                                properties: {
-                                  description: { type: Type.STRING },
-                                  duration: { type: Type.STRING }
-                                },
-                                required: ["description", "duration"]
-                              },
-                              mainPart: {
-                                type: Type.OBJECT,
-                                properties: {
-                                  description: { type: Type.STRING },
-                                  duration: { type: Type.STRING }
-                                },
-                                required: ["description", "duration"]
-                              },
-                              cooldown: {
-                                type: Type.OBJECT,
-                                properties: {
-                                  description: { type: Type.STRING },
-                                  duration: { type: Type.STRING }
-                                },
-                                required: ["description", "duration"]
-                              },
-                              intensity: { type: Type.STRING },
-                              intensityIcon: { type: Type.STRING },
-                              notes: { type: Type.STRING },
-                              totalDuration: { type: Type.STRING }
-                            },
-                            required: ["day", "activityTitle", "warmup", "mainPart", "cooldown", "intensity", "intensityIcon", "totalDuration"]
-                          }
-                        }
-                      },
-                      required: ["week", "weekName", "focus", "labInsight", "planningAdvice", "days"]
-                    }
-                  }
-                },
-                required: ["month", "title", "weeks"]
-              }
-            },
-            safetyWarnings: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            }
-          },
-          required: ["title", "overview", "months", "safetyWarnings"]
-        }
+  const prompt = `${ALLAWI_LOGIC_PROMPT}\n\n${userStats}\n\nPhase 1: Generate the Program Title, Overview, and Month 1 ONLY.\nREMINDER: Each week must start with "الاثنين" and end with "الأحد".
+  
+  Format the response as a VALID JSON object with this structure:
+  {
+    "title": "...",
+    "overview": "...",
+    "months": [
+      {
+        "month": 1,
+        "title": "...",
+        "weeks": [
+          {
+            "week": 1,
+            "focus": "...",
+            "sessions": [
+              { "day": "الاثنين", "activity": "...", "description": "...", "intensity": "low|medium|high|rest", "duration": "...", "type": "..." }
+              ... (up to Sunday)
+            ]
+          }
+        ]
       }
-    });
+    ],
+    "safetyWarnings": ["..."]
+  }`;
 
-    const text = response.text;
-    if (!text) throw new Error("لم يتم استلام أي رد من الذكاء الاصطناعي");
-    
-    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-    return JSON.parse(cleanedText) as CoachingProgram;
-  } catch (error) {
-    console.error("Error generating initial program:", error);
-    throw error;
-  }
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const text = response.text();
+  
+  // Clean JSON from potential markdown blocks
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("فشل AI في توليد بيانات صالحة");
+  
+  return JSON.parse(jsonMatch[0]);
 }
 
-/**
- * Generates a specific month's plan based on user profile and previous progress.
- */
-export async function generateSubsequentMonth(
-  user: UserProfile, 
-  monthNumber: number,
-  previousContext?: string
-): Promise<MonthlyPlan> {
+export async function generateSubsequentMonth(user: UserProfile, monthNumber: number, previousContext: string): Promise<MonthlyPlan> {
+  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
   const prompt = `${ALLAWI_LOGIC_PROMPT}
   
   User Profile:
@@ -144,90 +63,20 @@ export async function generateSubsequentMonth(
 
   ${previousContext ? `Context from previous phase: ${previousContext}` : ""}
 
-  Task: Generate Month ${monthNumber} ONLY.
-  It MUST follow the logic of the previous month but progress appropriately.
-  REMINDER: Each week MUST start with "الاثنين" and end with "الأحد". Avoid any random or non-scientific activities.
+  Generate Month ${monthNumber} ONLY.
+  Structure should be:
+  {
+    "month": ${monthNumber},
+    "title": "...",
+    "weeks": [ ... ]
+  }`;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const text = response.text();
   
-  Return a SINGLE MonthlyPlan object.`;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest", 
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
-        maxOutputTokens: 8192,
-        temperature: 0,
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            month: { type: Type.NUMBER },
-            title: { type: Type.STRING },
-            weeks: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  week: { type: Type.NUMBER },
-                  weekName: { type: Type.STRING },
-                  focus: { type: Type.STRING },
-                  labInsight: { type: Type.STRING },
-                  planningAdvice: { type: Type.STRING },
-                  days: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        day: { type: Type.STRING },
-                        activityTitle: { type: Type.STRING },
-                        warmup: {
-                          type: Type.OBJECT,
-                          properties: {
-                            description: { type: Type.STRING },
-                            duration: { type: Type.STRING }
-                          },
-                          required: ["description", "duration"]
-                        },
-                        mainPart: {
-                          type: Type.OBJECT,
-                          properties: {
-                            description: { type: Type.STRING },
-                            duration: { type: Type.STRING }
-                          },
-                          required: ["description", "duration"]
-                        },
-                        cooldown: {
-                          type: Type.OBJECT,
-                          properties: {
-                            description: { type: Type.STRING },
-                            duration: { type: Type.STRING }
-                          },
-                          required: ["description", "duration"]
-                        },
-                        intensity: { type: Type.STRING },
-                        intensityIcon: { type: Type.STRING },
-                        totalDuration: { type: Type.STRING },
-                        notes: { type: Type.STRING }
-                      },
-                      required: ["day", "activityTitle", "warmup", "mainPart", "cooldown", "intensity", "intensityIcon", "totalDuration"]
-                    }
-                  }
-                },
-                required: ["week", "weekName", "focus", "labInsight", "planningAdvice", "days"]
-              }
-            }
-          },
-          required: ["month", "title", "weeks"]
-        }
-      }
-    });
-
-    const text = response.text;
-    if (!text) throw new Error("لم يتم استلام أي رد من الذكاء الاصطناعي");
-    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-    return JSON.parse(cleanedText) as MonthlyPlan;
-  } catch (error) {
-    console.error(`Error generating month ${monthNumber}:`, error);
-    throw error;
-  }
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("فشل AI في توليد بيانات الشهر التالي");
+  
+  return JSON.parse(jsonMatch[0]);
 }

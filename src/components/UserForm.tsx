@@ -1,13 +1,7 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState } from 'react';
-import { UserProfile, SkillLevel, TrainingGoal, Gender, ProgramType } from '../types';
+import React from 'react';
+import { UserProfile, Gender, SkillLevel, TrainingGoal, ProgramType } from '../types';
 import { GOAL_DEFINITIONS } from '../constants';
-import { Activity, User, Target, ChevronRight, Weight, Users, Clock } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ChevronRight } from 'lucide-react';
 
 interface UserFormProps {
   onSubmit: (profile: UserProfile) => void;
@@ -16,18 +10,18 @@ interface UserFormProps {
 }
 
 export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserFormProps) {
-  const [formData, setFormData] = useState<UserProfile>({
-    age: 25,
-    weight: 70,
+  const [formData, setFormData] = React.useState<UserProfile>({
+    age: 30,
+    weight: 75,
     height: 175,
     gender: Gender.MALE,
     skillLevel: SkillLevel.BEGINNER,
-    goal: TrainingGoal.GENERAL_HEALTH,
+    goal: TrainingGoal.RECREATIONAL,
     programType: ProgramType.WEEKLY
   });
 
-  const updateFormData = (newData: Partial<UserProfile>) => {
-    const updated = { ...formData, ...newData };
+  const updateFormData = (patch: Partial<UserProfile>) => {
+    const updated = { ...formData, ...patch };
     setFormData(updated);
     onProfileChange(updated);
   };
@@ -38,15 +32,15 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bento-card flex flex-col justify-between h-full space-y-8">
+    <form onSubmit={handleSubmit} className="bento-card flex flex-col justify-between h-full space-y-8" dir="rtl">
       <div>
         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
           <span className="accent-bar bg-green-500"></span> محاكي RUNZ (المدخلات)
         </h2>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5 col-span-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">الجنس</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">الجنس</label>
             <div className="grid grid-cols-2 gap-2">
               <button 
                 type="button"
@@ -65,98 +59,95 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">العمر</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">العمر</label>
             <input
               type="number"
               value={formData.age || ''}
               onChange={(e) => updateFormData({ age: e.target.value === '' ? 0 : Number(e.target.value) })}
-              placeholder="0"
               className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">الوزن (كجم)</span>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">الوزن (كجم)</label>
             <input
               type="number"
               value={formData.weight || ''}
               onChange={(e) => updateFormData({ weight: e.target.value === '' ? 0 : Number(e.target.value) })}
-              placeholder="0"
               className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
 
-          <div className="space-y-1.5 col-span-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">الطول (سم)</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">الطول (سم)</label>
             <input
               type="number"
               value={formData.height || ''}
               onChange={(e) => updateFormData({ height: e.target.value === '' ? 0 : Number(e.target.value) })}
-              placeholder="0"
               className="w-full font-bold text-lg text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
-
-          <div className="space-y-1.5 col-span-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">مستوى المهارة</span>
-            <select
-              value={formData.skillLevel}
-              onChange={(e) => updateFormData({ skillLevel: e.target.value as SkillLevel })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
-            >
-              <option value={SkillLevel.BEGINNER}>مبتدئ (Progression 2:1)</option>
-              <option value={SkillLevel.INTERMEDIATE}>متوسط (Progression 1:1)</option>
-              <option value={SkillLevel.PROFESSIONAL}>محترف (Sharp Loading Wave)</option>
-            </select>
-          </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4">
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">الهدف التدريبي</span>
-            <select
-              value={formData.goal}
-              onChange={(e) => updateFormData({ goal: e.target.value as TrainingGoal })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
-            >
-              {Object.entries(GOAL_DEFINITIONS).map(([key, def]) => (
-                <option key={key} value={key}>{def.label}</option>
-              ))}
-            </select>
-          </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">المستوى الحالي</label>
+          <select
+            value={formData.skillLevel}
+            onChange={(e) => updateFormData({ skillLevel: e.target.value as SkillLevel })}
+            className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value={SkillLevel.BEGINNER}>مبتدئ (Progression 2:1)</option>
+            <option value={SkillLevel.INTERMEDIATE}>متوسط (Progression 1:1)</option>
+            <option value={SkillLevel.ADVANCED}>متقدم (Progression 1:0.5)</option>
+            <option value={SkillLevel.PRO}>محترف (Elite Logic)</option>
+          </select>
+        </div>
 
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">طبيعة الجدول (نوع البرنامج)</span>
-            <select
-              value={formData.programType}
-              onChange={(e) => updateFormData({ programType: e.target.value as ProgramType })}
-              className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500 appearance-none"
-            >
-              <option value={ProgramType.WEEKLY}>برنامج أسبوعي كامل (5-6 أيام)</option>
-              <option value={ProgramType.THREE_DAY}>برنامج مكثف تلات أيام فقط (Low Frequency)</option>
-            </select>
-          </div>
+        <div className="mt-4 flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">الهدف التدريبي</label>
+          <select
+            value={formData.goal}
+            onChange={(e) => updateFormData({ goal: e.target.value as TrainingGoal })}
+            className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
+          >
+            {Object.entries(GOAL_DEFINITIONS).map(([key, def]) => (
+              <option key={key} value={key}>{def.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">نوع وهيبة البرنامج</label>
+          <select
+            value={formData.programType}
+            onChange={(e) => updateFormData({ programType: e.target.value as ProgramType })}
+            className="w-full font-bold text-sm text-slate-900 bg-slate-100 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value={ProgramType.WEEKLY}>برنامج أسبوعي كامل (5-6 أيام)</option>
+            <option value={ProgramType.THREE_DAY}>برنامج مكثف تلات أيام فقط (Low Frequency)</option>
+          </select>
         </div>
       </div>
 
       <div className="pt-6 border-t border-slate-100">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-slate-950 hover:bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50 shadow-xl group"
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
-            ) : (
-              <>
-                استخراج البرنامج التدريبي
-                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform rotate-180" />
-              </>
-            )}
-          </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-slate-950 hover:bg-black text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50 shadow-xl group"
+        >
+          {isLoading ? (
+            <div className="w-5 h-5 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+          ) : (
+            <>
+              استخراج البرنامج التدريبي
+              <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform rotate-180" />
+            </>
+          )}
+        </button>
       </div>
     </form>
   );

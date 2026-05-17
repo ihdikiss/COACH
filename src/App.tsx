@@ -1,116 +1,137 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserForm from './components/UserForm';
 import ProgramView from './components/ProgramView';
 import HealthReportModal from './components/HealthReportModal';
 import LandingPage from './components/LandingPage';
 import { UserProfile, CoachingProgram, Gender, SkillLevel, TrainingGoal, DayCompletion, ProgramType, AppView } from './types';
 import { generateInitialProgram, generateSubsequentMonth } from './services/geminiService';
-import { ShieldCheck, Info, Activity } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { ShieldCheck, LogOut, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from './lib/supabase';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>(AppView.LANDING);
   const [isLoading, setIsLoading] = useState(false);
   const [program, setProgram] = useState<CoachingProgram | null>(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const [currentProfile, setCurrentProfile] = useState<UserProfile>({
-    age: 25,
-    weight: 70,
+    age: 30,
+    weight: 75,
     height: 175,
     gender: Gender.MALE,
     skillLevel: SkillLevel.BEGINNER,
-    goal: TrainingGoal.GENERAL_HEALTH,
+    goal: TrainingGoal.RECREATIONAL,
     programType: ProgramType.WEEKLY
   });
-  const [completions, setCompletions] = useState<Record<string, DayCompletion>>(() => {
-    const saved = localStorage.getItem('runz_completions');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [completions, setCompletions] = useState<DayCompletion>({});
+  const [welcomeUser, setWelcomeUser] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('runz_completions', JSON.stringify(completions));
-  }, [completions]);
+    const fetchProfile = async (userId: string) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+      if (data?.username) {
+        setWelcomeUser(data.username);
+        // إخفاء الرسالة بعد 5 ثوانٍ
+        setTimeout(() => setWelcomeUser(null), 5000);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setCurrentView(AppView.MAIN_APP);
+        fetchProfile(session.user.id);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      if (session) {
+        setCurrentView(AppView.MAIN_APP);
+        if (event === 'SIGNED_IN') {
+           fetchProfile(session.user.id);
+        }
+      } else {
+        setCurrentView(AppView.LANDING);
+        setProgram(null);
+        setWelcomeUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const handleGenerate = async (profile: UserProfile) => {
     setIsLoading(true);
     try {
       const result = await generateInitialProgram(profile);
       setProgram(result);
-      // Reset completions for the new program context
       setCompletions({});
     } catch (error) {
       console.error("Generation error:", error);
-      alert(`حدث خطأ أثناء توليد البرنامج: ${error instanceof Error ? error.message : 'خطأ غير معروف'}. يرجى المحاولة مرة أخرى.`);
+      alert(`حدث خطأ أثناء توليد البرنامج: ${error instanceof Error ? error.message : 'خطأ غير معروف'}. يرجى التأكد من مفتاح API.`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCompleteDay = (month: number, week: number, dayIndex: number) => {
-    const key = `m${month}-w${week}-d${dayIndex}`;
-    const wasCompleted = completions[key]?.completed;
-    
-    setCompletions(prev => ({
-      ...prev,
-      [key]: {
-        month,
-        week,
-        dayIndex,
-        completed: !wasCompleted,
-        completedAt: !wasCompleted ? new Date().toISOString() : undefined
-      }
-    }));
-
-    if (!wasCompleted) {
-      // Anti-cheat alert with Allawi tone
-      alert("لقد أتممت خطوة نحو القمة. تذكر: الغش في التمرين هو غش لنفسك، الجسد لا يكذب والنتائج تُبنى بالاستمرارية، وليس بالقفز فوق الأيام. نراك غداً!");
     }
   };
 
   const handleFetchNextMonth = async () => {
-    if (!program) return;
-    const nextMonthNumber = program.months.length + 1;
-    if (nextMonthNumber > 3) return;
-
+    if (!program || !currentProfile) return;
     setIsLoading(true);
     try {
-      const context = `Last month theme was: ${program.months[program.months.length - 1].title}`;
-      const nextMonth = await generateSubsequentMonth(currentProfile, nextMonthNumber, context);
+      const nextMonthNum = program.months.length + 1;
+      const context = `Program Title: ${program.title}. Previous Month Goal: ${program.months[program.months.length - 1].title}`;
+      const nextMonth = await generateSubsequentMonth(currentProfile, nextMonthNum, context);
       
-      setProgram(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          months: [...prev.months, nextMonth]
-        };
+      setProgram({
+        ...program,
+        months: [...program.months, nextMonth]
       });
-      
-      // Motivational success message
-      alert(`أحسنت أيها العداء! لقد أثبت التزاماً حديدياً. تم فتح الشهر ${nextMonthNumber} بنجاح. تذكر أن الاستمرارية هي سر التفرق، والقمة تنتظر من لا يمل من الصعود.`);
     } catch (error) {
-      console.error("Fetch next month error:", error);
-      alert("حدث خطأ أثناء فتح الشهر التالي.");
+      console.error("Next month error:", error);
+      alert("تعذر توليد الشهر التالي. حاول مرة أخرى.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const openReport = () => {
-    if (!currentProfile.age || !currentProfile.weight || !currentProfile.height) {
-      alert("يرجى إكمال بياناتك الأساسية أولاً (العمر، الوزن، الطول) لتوليد تقرير السلامة الخاص بك.");
-      return;
-    }
-    setIsReportOpen(true);
+  const handleCompleteDay = (key: string) => {
+    setCompletions(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
+  const openReport = () => setIsReportOpen(true);
+
   return (
-    <AnimatePresence mode="wait">
-      {currentView === AppView.LANDING ? (
+    <>
+      <AnimatePresence>
+        {welcomeUser && (
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 20, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-black px-8 py-4 rounded-2xl font-black shadow-2xl flex items-center gap-3 border-4 border-black"
+          >
+            <Activity size={24} />
+            <span className="text-lg">مرحبا أيها العداء {welcomeUser}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence mode="wait">
+        {currentView === AppView.LANDING ? (
         <LandingPage 
           onStart={(view) => setCurrentView(view)} 
           onFinishRegister={() => setCurrentView(AppView.MAIN_APP)} 
@@ -133,9 +154,16 @@ export default function App() {
                 <h1 className="text-5xl font-black text-slate-900 tracking-tighter italic group-hover:text-green-600 transition-colors">
                   RUNZ<span className="text-green-500 group-hover:text-green-400">.ENGINE</span>
                 </h1>
-                <p className="text-slate-500 font-medium mt-1">المحرك التدريبي العلمي القائم على أسس "حمل التدريب" للدكتور علاوي</p>
+                <p className="text-slate-500 font-medium mt-1 text-sm">المحرك التدريبي العلمي القائم على أسس "حمل التدريب" للدكتور علاوي</p>
               </div>
               <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleLogout}
+                  className="bg-white hover:bg-red-50 px-4 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all active:scale-95 group"
+                  title="تسجيل الخروج"
+                >
+                  <LogOut size={20} />
+                </button>
                 <button 
                   onClick={openReport}
                   className="bg-white hover:bg-slate-50 px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3 transition-all active:scale-95 group"
@@ -183,7 +211,6 @@ export default function App() {
                             </div>
                           </div>
                         </div>
-                        {/* Decorative radial gradient */}
                         <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-green-500/20 blur-[100px] rounded-full"></div>
                       </div>
                     </div>
@@ -233,7 +260,7 @@ export default function App() {
           />
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 }
-

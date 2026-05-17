@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, Zap, Trophy, ArrowRight, User, Mail, Phone, Lock, ChevronLeft, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, Zap, Trophy, ArrowRight, User, Mail, Lock, ChevronLeft, Activity, Loader2 } from 'lucide-react';
 import { AppView } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface LandingPageProps {
   onStart: (view: AppView) => void;
@@ -11,21 +12,83 @@ interface LandingPageProps {
 export default function LandingPage({ onStart, onFinishRegister }: LandingPageProps) {
   const [currentStep, setCurrentStep] = useState<'landing' | 'register' | 'login'>('landing');
   const [regType, setRegType] = useState<'free' | 'premium'>('free');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form states
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
 
   const handleOpenRegister = (type: 'free' | 'premium') => {
     setRegType(type);
     setCurrentStep('register');
+    setError(null);
   };
 
-  const handleFinishRegister = (e: React.FormEvent) => {
+  const handleFinishRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulation: Save data here
-    setCurrentStep('login');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. التحقق أولاً من أن اسم المستخدم غير موجود مسبقاً (إضافي للـ DB Constraint)
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingUser) {
+        throw new Error('اسم المستخدم هذا مسجل مسبقاً، اختر اسماً آخر.');
+      }
+
+      // 2. عملية التسجيل الرئيسية
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            phone, // إرسال رقم الهاتف في الميتاداتا
+            registration_type: regType,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      
+      if (data.user) {
+        alert('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+        setCurrentStep('login');
+      }
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ أثناء التسجيل');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    onFinishRegister();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) throw signInError;
+      
+      onFinishRegister();
+    } catch (err: any) {
+      setError(err.message || 'خطأ في تسجيل الدخول. تأكد من البيانات.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,7 +110,7 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
 
             {/* Header / Logo */}
             <div className="absolute top-8 right-8 flex items-center gap-2 group cursor-pointer">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors duration-500 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors duration-500">
                 <span className="font-black text-xl italic tracking-tighter text-black">R</span>
               </div>
               <span className="font-black text-2xl tracking-tighter uppercase italic group-hover:text-green-500 transition-colors">RUNZ</span>
@@ -61,7 +124,7 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                 transition={{ delay: 0.2 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-sm mb-4"
               >
-                <Zap size={16} className="text-orange-500" />
+                <Zap size={16} className="text-green-500" />
                 <span>الجيل الجديد من التدريب الرياضي</span>
               </motion.div>
 
@@ -163,74 +226,88 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
                 </div>
                 <h2 className="text-3xl font-black italic uppercase">إنشاء حساب جديد</h2>
                 <p className="text-slate-400 text-sm">ادخل بياناتك للبدء في رحلة التدريب الاحترافي</p>
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-xs font-bold text-center mt-4">
+                    {error}
+                  </div>
+                )}
               </div>
 
-              <form onSubmit={handleFinishRegister} className="space-y-4">
-                <div className="space-y-1.5 text-right">
+              <form onSubmit={handleFinishRegister} className="space-y-4 text-right">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">اسم المستخدم</label>
                   <div className="relative group">
                     <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="text"
                       required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       placeholder="Username"
                       className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-right">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">البريد الإلكتروني</label>
                   <div className="relative group">
-                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="example@email.com"
-                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-right">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">رقم الهاتف</label>
                   <div className="relative group">
-                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <Activity className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="tel"
                       required
-                      placeholder="+212 ..."
-                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+966 50 000 0000"
+                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-right">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">كلمة المرور</label>
                   <div className="relative group">
-                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="password"
                       required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      className="w-full bg-slate-800 border-none rounded-xl py-3.5 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
-                  <button 
-                    type="submit"
-                    className="w-full bg-green-500 hover:bg-green-400 text-black font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter"
-                  >
-                    التسجيل والمتابعة
-                  </button>
+                <button 
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-green-500 hover:bg-green-400 text-black font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'التسجيل والمتابعة'}
+                </button>
 
                 <div className="text-center pt-4">
                   <span className="text-slate-500 text-sm italic">لديك حساب؟ </span>
                   <button 
                     type="button"
                     onClick={() => setCurrentStep('login')}
-                    className="text-white hover:text-red-500 font-bold text-sm transition-colors"
+                    className="text-white hover:text-green-500 font-bold text-sm transition-colors"
                   >
                     سجل دخولك هنا
                   </button>
@@ -249,46 +326,56 @@ export default function LandingPage({ onStart, onFinishRegister }: LandingPagePr
             <div className="w-full max-w-md space-y-8 bg-slate-900/50 p-8 rounded-3xl border border-slate-800 backdrop-blur-xl">
               <div className="space-y-2 text-center">
                 <div className="flex justify-center mb-6">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center rotate-3 group hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center rotate-3 group hover:rotate-0 transition-transform">
                     <Lock className="text-black" size={32} />
                   </div>
                 </div>
                 <h2 className="text-3xl font-black italic uppercase text-white">تسجيل الدخول</h2>
                 <p className="text-slate-400 text-sm">مرحباً بك مجدداً في RUNZ. ادخل بيانات حسابك</p>
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-xs font-bold text-center mt-4">
+                    {error}
+                  </div>
+                )}
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-1.5 text-right">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">البريد الإلكتروني أو المستخدم</label>
+              <form onSubmit={handleLogin} className="space-y-4 text-right">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">البريد الإلكتروني</label>
                   <div className="relative group">
-                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
-                      type="text"
+                      type="email"
                       required
-                      placeholder="Email or Username"
-                      className="w-full bg-slate-800 border-none rounded-xl py-4 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                      className="w-full bg-slate-800 border-none rounded-xl py-4 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-right">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">كلمة المرور</label>
                   <div className="relative group">
-                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
+                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-green-500 transition-colors" size={18} />
                     <input
                       type="password"
                       required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-800 border-none rounded-xl py-4 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-red-500 transition-all font-bold text-right"
+                      className="w-full bg-slate-800 border-none rounded-xl py-4 pr-12 pl-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-green-500 transition-all font-bold text-right"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-white text-slate-950 hover:bg-slate-200 font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter"
+                  disabled={isLoading}
+                  className="w-full bg-white text-slate-950 hover:bg-slate-200 font-black py-4 rounded-xl shadow-lg transition-all mt-6 uppercase italic tracking-tighter flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  دخول للنظام
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'دخول للنظام'}
                 </button>
 
                 <div className="text-center pt-4">
