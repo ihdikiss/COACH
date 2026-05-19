@@ -1,12 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { UserProfile, CoachingProgram, MonthlyPlan, ProgramType } from "../types";
 import { ALLAWI_LOGIC_PROMPT } from "../constants";
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 export async function generateInitialProgram(user: UserProfile): Promise<CoachingProgram> {
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
   const userStats = `
     Age: ${user.age}
     Weight: ${user.weight}kg
@@ -42,9 +37,21 @@ export async function generateInitialProgram(user: UserProfile): Promise<Coachin
     "safetyWarnings": ["..."]
   }`;
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
+  const res = await fetch("/api/gemini/generate-initial", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "فشل الخادم في الاتصال بـ Gemini API");
+  }
+
+  const data = await res.json();
+  const text = data.text;
   
   // Clean JSON from potential markdown blocks
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -54,8 +61,6 @@ export async function generateInitialProgram(user: UserProfile): Promise<Coachin
 }
 
 export async function generateSubsequentMonth(user: UserProfile, monthNumber: number, previousContext: string): Promise<MonthlyPlan> {
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
   const prompt = `${ALLAWI_LOGIC_PROMPT}
   
   User Profile:
@@ -71,9 +76,21 @@ export async function generateSubsequentMonth(user: UserProfile, monthNumber: nu
     "weeks": [ ... ]
   }`;
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
+  const res = await fetch("/api/gemini/generate-subsequent", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "فشل الخادم في الاتصال بـ Gemini API");
+  }
+
+  const data = await res.json();
+  const text = data.text;
   
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("فشل AI في توليد بيانات الشهر التالي");
