@@ -11,12 +11,9 @@ export enum SkillLevel {
 }
 
 export enum TrainingGoal {
-  RECREATIONAL = 'recreational',
-  FIVE_K = '5k',
-  TEN_K = '10k',
-  HALF_MARATHON = 'half_marathon',
-  MARATHON = 'marathon',
-  ULTRA = 'ultra'
+  FITNESS = 'fitness',
+  WEIGHT_LOSS = 'weight_loss',
+  RACE = 'race'
 }
 
 export enum ProgramType {

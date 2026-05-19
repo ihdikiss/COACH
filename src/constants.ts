@@ -15,10 +15,7 @@ export const ALLAWI_LOGIC_PROMPT = `
 `;
 
 export const GOAL_DEFINITIONS: Record<TrainingGoal, { label: string; icon: string }> = {
-  [TrainingGoal.RECREATIONAL]: { label: 'جري ترويحي (صحة لياقة)', icon: '🏃‍♂️' },
-  [TrainingGoal.FIVE_K]: { label: 'تحطيم رقم 5 كم', icon: '⏱️' },
-  [TrainingGoal.TEN_K]: { label: 'تحطيم رقم 10 كم', icon: '🔥' },
-  [TrainingGoal.HALF_MARATHON]: { label: 'نصف ماراثون (21 كم)', icon: '🏁' },
-  [TrainingGoal.MARATHON]: { label: 'ماراثون كامل (42 كم)', icon: '🏆' },
-  [TrainingGoal.ULTRA]: { label: 'ألترا ماراثون (+50 كم)', icon: '♾️' },
+  [TrainingGoal.FITNESS]: { label: 'تحسين اللياقة البدنية', icon: '⚡' },
+  [TrainingGoal.WEIGHT_LOSS]: { label: 'تخسيس الوزن', icon: '⚖️' },
+  [TrainingGoal.RACE]: { label: 'الجري لسباق', icon: '🏁' },
 };

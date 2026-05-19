@@ -16,7 +16,7 @@ export default function UserForm({ onSubmit, onProfileChange, isLoading }: UserF
     height: 175,
     gender: Gender.MALE,
     skillLevel: SkillLevel.BEGINNER,
-    goal: TrainingGoal.RECREATIONAL,
+    goal: TrainingGoal.FITNESS,
     programType: ProgramType.WEEKLY
   });
 
