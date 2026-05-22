@@ -46,8 +46,19 @@ export async function generateInitialProgram(user: UserProfile): Promise<Coachin
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || "فشل الخادم في الاتصال بـ Gemini API");
+    let errorMessage = "فشل الخادم في الاتصال بـ Gemini API";
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch (e) {
+      try {
+        const textData = await res.text();
+        if (textData) {
+          errorMessage = textData.slice(0, 300);
+        }
+      } catch (textErr) {}
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await res.json();
@@ -85,8 +96,19 @@ export async function generateSubsequentMonth(user: UserProfile, monthNumber: nu
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || "فشل الخادم في الاتصال بـ Gemini API");
+    let errorMessage = "فشل الخادم في الاتصال بـ Gemini API";
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch (e) {
+      try {
+        const textData = await res.text();
+        if (textData) {
+          errorMessage = textData.slice(0, 300);
+        }
+      } catch (textErr) {}
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await res.json();
