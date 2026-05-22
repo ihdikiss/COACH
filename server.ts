@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 
 async function startServer() {
@@ -9,26 +8,45 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Initialize secure GenAI client
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-  const ai = geminiApiKey 
-    ? new GoogleGenAI({
-        apiKey: geminiApiKey,
+  // Helper function to dynamically initialize or retrieve the Gemini client with multiple fallback API keys
+  function getGeminiClient(): { ai: GoogleGenAI | null; error?: string } {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      return {
+        ai: null,
+        error: "لم يتم العثور على مفتاح الـ API لـ Gemini. بحث السيرفر الخلفي عن المتغيرات البيئية التالية ولم يجد أي مسمّى معرّف بنجاح:\n" +
+               "1. GEMINI_API_KEY\n" +
+               "2. NEXT_PUBLIC_GEMINI_API_KEY\n" +
+               "3. VITE_GEMINI_API_KEY\n\n" +
+               "يرجى التأكد من مطابقة اسم المتغير تماماً في إعدادات البيئة لـ Vercel مع أحد المسميات أعلاه (يُفضل GEMINI_API_KEY في قسم Environment Variables)."
+      };
+    }
+
+    try {
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
         httpOptions: {
           headers: {
             'User-Agent': 'aistudio-build',
           }
         }
-      })
-    : null;
+      });
+      return { ai };
+    } catch (initErr: any) {
+      return {
+        ai: null,
+        error: `حدث خطأ أثناء تهيئة العميل البرمجي لـ GoogleGenAI: ${initErr.message || initErr}`
+      };
+    }
+  }
 
   // Endpoint to generate initial program
   app.post("/api/gemini/generate-initial", async (req, res) => {
     try {
+      const { ai, error } = getGeminiClient();
       if (!ai) {
-        return res.status(500).json({ 
-          error: "مفتاح API الخاص بـ Gemini غير مهيأ على الخادم بشكل صحيح. يرجى إضافته في الإعدادات." 
-        });
+        return res.status(500).json({ error });
       }
 
       const { prompt } = req.body;
@@ -54,10 +72,9 @@ async function startServer() {
   // Endpoint to generate subsequent month
   app.post("/api/gemini/generate-subsequent", async (req, res) => {
     try {
+      const { ai, error } = getGeminiClient();
       if (!ai) {
-        return res.status(500).json({ 
-          error: "مفتاح API الخاص بـ Gemini غير مهيأ على الخادم بشكل صحيح. يرجى إضافته في الإعدادات." 
-        });
+        return res.status(500).json({ error });
       }
 
       const { prompt } = req.body;
@@ -81,6 +98,7 @@ async function startServer() {
 
   // Serve Vite or static assets depending on environment
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -89,7 +107,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*all", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
