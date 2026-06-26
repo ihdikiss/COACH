@@ -29,47 +29,76 @@ export default function App() {
 
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', userId)
-        .single();
-      if (data?.username) {
-        setWelcomeUser(data.username);
-        // إخفاء الرسالة بعد 5 ثوانٍ
-        setTimeout(() => setWelcomeUser(null), 5000);
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', userId)
+          .single();
+        if (data?.username) {
+          setWelcomeUser(data.username);
+          // إخفاء الرسالة بعد 5 ثوانٍ
+          setTimeout(() => setWelcomeUser(null), 5000);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch profile from Supabase:", err);
       }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        setCurrentView(AppView.MAIN_APP);
-        fetchProfile(session.user.id);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (session) {
-        setCurrentView(AppView.MAIN_APP);
-        if (event === 'SIGNED_IN') {
-           fetchProfile(session.user.id);
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        if (session) {
+          setCurrentView(AppView.MAIN_APP);
+          fetchProfile(session.user.id);
         }
-      } else {
-        setCurrentView(AppView.LANDING);
-        setProgram(null);
-        setWelcomeUser(null);
-      }
-    });
+      })
+      .catch((err) => {
+        console.warn("Failed to get Supabase session on init:", err);
+      });
 
-    return () => subscription.unsubscribe();
+    let subscription: any = null;
+    try {
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        setSession(session);
+        if (session) {
+          setCurrentView(AppView.MAIN_APP);
+          if (event === 'SIGNED_IN') {
+             fetchProfile(session.user.id);
+          }
+        } else {
+          setCurrentView(AppView.LANDING);
+          setProgram(null);
+          setWelcomeUser(null);
+        }
+      });
+      subscription = data?.subscription;
+    } catch (err) {
+      console.warn("Failed to register Supabase auth listener:", err);
+    }
+
+    return () => {
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch (err) {
+          console.warn("Failed to unsubscribe from Supabase auth:", err);
+        }
+      }
+    };
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn("Failed to sign out from Supabase:", err);
+    } finally {
+      setSession(null);
+      setCurrentView(AppView.LANDING);
+      setProgram(null);
+      setWelcomeUser(null);
+    }
   };
 
   const handleGenerate = async (profile: UserProfile) => {

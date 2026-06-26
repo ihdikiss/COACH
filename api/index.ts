@@ -42,6 +42,28 @@ function getGeminiClient(): { ai: GoogleGenAI | null; error?: string } {
   }
 }
 
+// Helper function to format Gemini API errors beautifully in Arabic
+function formatGeminiError(error: any): string {
+  const errMsg = error.message || String(error);
+  
+  if (errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid") || errMsg.includes("INVALID_ARGUMENT")) {
+    return "مفتاح الـ API لـ Gemini غير صالح أو تم إيقافه (معطل أو مسرب من قبل غوغل لأسباب أمنية). يرجى إصدار مفتاح جديد تماماً من Google AI Studio (https://aistudio.google.com) واستبداله في الإعدادات الخاصة بـ Vercel أو ملف .env المحلي تحت الاسم GEMINI_API_KEY.";
+  }
+  
+  try {
+    const parsed = JSON.parse(errMsg);
+    if (parsed.error && parsed.error.message) {
+      const msg = parsed.error.message;
+      if (msg.includes("API key not valid") || msg.includes("API_KEY_INVALID")) {
+        return "مفتاح الـ API لـ Gemini غير صالح أو تم إيقافه (معطل أو مسرب من قبل غوغل لأسباب أمنية). يرجى إصدار مفتاح جديد تماماً من Google AI Studio (https://aistudio.google.com) واستبداله في الإعدادات الخاصة بـ Vercel أو ملف .env المحلي تحت الاسم GEMINI_API_KEY.";
+      }
+      return msg;
+    }
+  } catch (e) {}
+  
+  return errMsg || "حدث خطأ غير متوقع أثناء معالجة الخادم للطلب";
+}
+
 // Endpoint to generate initial program
 app.post("/api/gemini/generate-initial", async (req, res) => {
   try {
@@ -66,7 +88,7 @@ app.post("/api/gemini/generate-initial", async (req, res) => {
     res.json({ text });
   } catch (error: any) {
     console.error("Error in generate-initial:", error);
-    res.status(500).json({ error: error.message || "حدث خطأ غير متوقع أثناء معالجة الخادم للطلب" });
+    res.status(500).json({ error: formatGeminiError(error) });
   }
 });
 
@@ -93,7 +115,7 @@ app.post("/api/gemini/generate-subsequent", async (req, res) => {
     res.json({ text });
   } catch (error: any) {
     console.error("Error in generate-subsequent:", error);
-    res.status(500).json({ error: error.message || "حدث خطأ غير متوقع أثناء معالجة الخادم للطلب" });
+    res.status(500).json({ error: formatGeminiError(error) });
   }
 });
 
